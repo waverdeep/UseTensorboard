@@ -147,7 +147,6 @@ def main():
     net = model.Net()
     criterion = functions.get_criterion()
     optimizer = functions.get_optimizer(net, 0.001, 0.9)
-    set_tensorboard(trainset, testset, trainloader, testloader, net)
     writer = set_tensorboard_writer('runs/fashion_mnist_experiment_1')
     show_image_tensorboard(writer, trainloader)
     show_model_tensorboard(writer, net, trainloader)
