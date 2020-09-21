@@ -151,6 +151,9 @@ def main():
     show_image_tensorboard(writer, trainloader)
     show_model_tensorboard(writer, net, trainloader)
     show_projector_tensorboard(writer, trainset)
+
+    train(trainloader, net, optimizer, criterion, writer)
+
     close_tensorboard_writer(writer)
 
 
