@@ -62,10 +62,16 @@ def select_n_random(data, labels, n=100):
 # 명령줄에서 사용할때 tensorboard --logdir=runs를 사용한다.
 # 그런데 remote 환경에서는 저렇게 하면 접근할 수 없기 때문에
 # tensorboard --logdir=runs --bind_all 로 작성해야 한다.
-def set_tensorboard(trainset, testset, trainloader, testloader, net):
-    # 기본 `log_dir` 은 "runs"이며, 여기서는 더 구체적으로 지정하였습니다
-    writer = SummaryWriter('runs/fashion_mnist_experiment_1')
+def set_tensorboard_writer(name):
+    writer = SummaryWriter(name) # 'runs/fashion_mnist_experiment_1'
+    return writer
 
+
+def close_tensorboard_writer(writer):
+    writer.close()
+
+
+def show_image_tensorboard(writer, trainloader):
     # tensorboard에 기록하기
     dataiter = iter(trainloader)
     images, labels = dataiter.next()
@@ -79,9 +85,15 @@ def set_tensorboard(trainset, testset, trainloader, testloader, net):
     # tensorboard에 기록합니다.
     writer.add_image('four_fashion_mnist_images', img_grid)
 
-    # 모델 살펴보기
+
+def show_model_tensorboard(writer, net, trainloader):
+    # tensorboard에 기록하기
+    dataiter = iter(trainloader)
+    images, labels = dataiter.next()
     writer.add_graph(net, images)
 
+
+def show_projector_tensorboard(writer, trainset):
     # projector 관련 코드
     # 임의의 이미지들과 정답(target) 인덱스를 선택합니다
     images, labels = select_n_random(trainset.data, trainset.targets)
@@ -94,7 +106,6 @@ def set_tensorboard(trainset, testset, trainloader, testloader, net):
     writer.add_embedding(features,
                          metadata=class_labels,
                          label_img=images.unsqueeze(1))
-    writer.close()
 
 
 def train(trainloader, net, optimizer, criterion, writer):
@@ -137,6 +148,12 @@ def main():
     criterion = functions.get_criterion()
     optimizer = functions.get_optimizer(net, 0.001, 0.9)
     set_tensorboard(trainset, testset, trainloader, testloader, net)
+    writer = set_tensorboard_writer('runs/fashion_mnist_experiment_1')
+    show_image_tensorboard(writer, trainloader)
+    show_model_tensorboard(writer, net, trainloader)
+    show_projector_tensorboard(writer, trainset)
+    close_tensorboard_writer(writer)
+
 
 
 
