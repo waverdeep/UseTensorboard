@@ -4,7 +4,14 @@ import dataloader
 import torchvision
 import model
 import torch
+# 텐서보드를 사용해서 Projector를 구현할 때 오류가 있음
+# 이 오류를 해결하기 위해서 작성해야 할 것
+import tensorflow as tf
+import tensorboard as tb
+tf.io.gfile = tb.compat.tensorflow_stub.io.gfile
 
+
+# projector 관련 코드
 # 헬퍼(helper) 함수
 def select_n_random(data, labels, n=100):
     '''
@@ -19,7 +26,7 @@ def select_n_random(data, labels, n=100):
 # 명령줄에서 사용할때 tensorboard --logdir=runs를 사용한다.
 # 그런데 remote 환경에서는 저렇게 하면 접근할 수 없기 때문에
 # tensorboard --logdir=runs --bind_all 로 작성해야 한다.
-def set_tensorboard(trainloader, testloader, net):
+def set_tensorboard(trainset, testset, trainloader, testloader, net):
     # 기본 `log_dir` 은 "runs"이며, 여기서는 더 구체적으로 지정하였습니다
     writer = SummaryWriter('runs/fashion_mnist_experiment_1')
 
@@ -38,13 +45,27 @@ def set_tensorboard(trainloader, testloader, net):
 
     # 모델 살펴보기
     writer.add_graph(net, images)
+
+    # projector 관련 코드
+    # 임의의 이미지들과 정답(target) 인덱스를 선택합니다
+    images, labels = select_n_random(trainset.data, trainset.targets)
+
+    # 각 이미지의 분류 라벨(class label)을 가져옵니다
+    class_labels = [dataloader.classes[lab] for lab in labels]
+
+    # 임베딩(embedding) 내역을 기록합니다
+    features = images.view(-1, 28 * 28)
+    writer.add_embedding(features,
+                         metadata=class_labels,
+                         label_img=images.unsqueeze(1))
     writer.close()
 
 
 def main():
+    trainset, testset = dataloader.get_datasets()
     trainloader, testloader = dataloader.get_loader()
     net = model.Net()
-    set_tensorboard(trainloader, testloader, net)
+    set_tensorboard(trainset, testset, trainloader, testloader, net)
 
 
 if __name__ == '__main__':
