@@ -10,7 +10,7 @@ classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
            'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
 
 
-def get_loader():
+def get_datasets():
     # transforms
     transform = transforms.Compose(
         [transforms.ToTensor(),
@@ -25,6 +25,12 @@ def get_loader():
                                                 download=True,
                                                 train=False,
                                                 transform=transform)
+    return trainset, testset
+
+
+def get_loader():
+
+    trainset, testset = get_datasets()
 
     # dataloaders
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
