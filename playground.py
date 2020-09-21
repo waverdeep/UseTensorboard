@@ -6,6 +6,7 @@ import model
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import functions
 import numpy as np
 # 텐서보드를 사용해서 Projector를 구현할 때 오류가 있음
 # 이 오류를 해결하기 위해서 작성해야 할 것
@@ -107,7 +108,7 @@ def show_projector_tensorboard(writer, trainset):
                          label_img=images.unsqueeze(1))
 
 
-def train(trainloader, testloader, net, optimizer, criterion, writer):
+def train(trainloader, net, optimizer, criterion, writer):
     for epoch in range(1):  # 데이터셋을 여러번 반복
 
         for i, data in enumerate(trainloader, 0):
@@ -144,11 +145,16 @@ def main():
     trainset, testset = dataloader.get_datasets()
     trainloader, testloader = dataloader.get_loader()
     net = model.Net()
+    criterion = functions.get_criterion()
+    optimizer = functions.get_optimizer(net, 0.001, 0.9)
+    set_tensorboard(trainset, testset, trainloader, testloader, net)
     writer = set_tensorboard_writer('runs/fashion_mnist_experiment_1')
     show_image_tensorboard(writer, trainloader)
     show_model_tensorboard(writer, net, trainloader)
     show_projector_tensorboard(writer, trainset)
     close_tensorboard_writer(writer)
+
+
 
 
 if __name__ == '__main__':
