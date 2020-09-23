@@ -109,6 +109,7 @@ def show_projector_tensorboard(writer, trainset):
 
 
 def train(trainloader, net, optimizer, criterion, writer):
+    running_loss = 0.0
     for epoch in range(1):  # 데이터셋을 여러번 반복
 
         for i, data in enumerate(trainloader, 0):
@@ -147,10 +148,13 @@ def main():
     net = model.Net()
     criterion = functions.get_criterion()
     optimizer = functions.get_optimizer(net, 0.001, 0.9)
-    writer = set_tensorboard_writer('runs/fashion_mnist_experiment_1')
+    writer = set_tensorboard_writer('runs/fashion_mnist_experiment_2')
     show_image_tensorboard(writer, trainloader)
     show_model_tensorboard(writer, net, trainloader)
     show_projector_tensorboard(writer, trainset)
+
+    train(trainloader, net, optimizer, criterion, writer)
+
     close_tensorboard_writer(writer)
 
 
