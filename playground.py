@@ -142,6 +142,46 @@ def train(trainloader, net, optimizer, criterion, writer):
                 running_loss = 0.0
     print('Finished Training')
 
+
+def test(testloader, net, writer):
+    # 1. 예측 확률을 test_size x num_classes 텐서로 가져옵니다
+    # 2. 예측 결과를 test_size 텐서로 가져옵니다
+    # 실행하는데 10초 이하 소요
+    class_probs = []
+    class_preds = []
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data
+            output = net(images)
+            class_probs_batch = [F.softmax(el, dim=0) for el in output]
+            _, class_preds_batch = torch.max(output, 1)
+
+            class_probs.append(class_probs_batch)
+            class_preds.append(class_preds_batch)
+
+    test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
+    test_preds = torch.cat(class_preds)
+
+    # 헬퍼 함수
+    def add_pr_curve_tensorboard(class_index, test_probs, test_preds, global_step=0):
+        '''
+        0부터 9까지의 "class_index"를 가져온 후 해당 정밀도-재현율(precision-recall)
+        곡선을 그립니다
+        '''
+        tensorboard_preds = test_preds == class_index
+        tensorboard_probs = test_probs[:, class_index]
+
+        writer.add_pr_curve(dataloader.classes[class_index],
+                            tensorboard_preds,
+                            tensorboard_probs,
+                            global_step=global_step)
+        writer.close()
+
+    # 모든 정밀도-재현율(precision-recall; pr) 곡선을 그립니다
+    for i in range(len(dataloader.classes)):
+        add_pr_curve_tensorboard(i, test_probs, test_preds)
+
+
 def main():
     trainset, testset = dataloader.get_datasets()
     trainloader, testloader = dataloader.get_loader()
@@ -154,7 +194,7 @@ def main():
     show_projector_tensorboard(writer, trainset)
 
     train(trainloader, net, optimizer, criterion, writer)
-
+    test(testloader, net, writer)
     close_tensorboard_writer(writer)
 
 
